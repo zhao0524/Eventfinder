@@ -86,7 +86,7 @@ def index():
     if request.method == "POST":
         city = request.form.get("city")
         keyword = request.form.get("keyword")
-        events = get_events(city, keyword)
+        events = get_events(city)
         return render_template("results.html", events=events)
     return render_template("index.html")
 
@@ -95,7 +95,7 @@ def index():
 def results():
     city    = request.args.get("city")
     keyword = request.args.get("keyword")
-    events  = []  # <- call your Ticketmaster helper here
+    events  = []
     return render_template("results.html", events=events, city=city, keyword=keyword)
 
 if __name__ == '__main__':

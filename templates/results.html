@@ -10,6 +10,7 @@
         <div>
             <h3>{{ event.name }}</h3>
             <p>{{ event.dates.start.localDate }} - {{ event._embedded.venues[0].name }}</p>
+            <p>{{ event.url }}</p>
             <a href="{{ event.url }}" target="_blank">View Event</a>
             <hr>
         </div>
