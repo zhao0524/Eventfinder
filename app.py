@@ -96,6 +96,7 @@ def results():
     city    = request.args.get("city")
     keyword = request.args.get("keyword")
     events  = []
+
     return render_template("results.html", events=events, city=city, keyword=keyword)
 
 if __name__ == '__main__':

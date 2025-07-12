@@ -1,37 +1,59 @@
 import requests
 from datetime import datetime, timedelta, timezone
 
+def _pick_image(images):
+    """
+    Return one 'best' image URL (16 × 9 >= 640 px if possible,
+    otherwise fall back to the first image).
+    """
+    if not images:
+        return None
+    for img in images:
+        if img.get("ratio") == "16_9" and img.get("width", 0) >= 640:
+            return img["url"]
+    return images[0]["url"]   # fallback
+
+
 def get_events(city):
     API_KEY = "o6Ic6NqS51mUeXl3H2wKVyZYSSyzJmT4"
     url = "https://app.ticketmaster.com/discovery/v2/events.json"
 
-    # Get the current time in UTC
-    now = datetime.now(timezone.utc)
+    # time window: now → three days ahead
+    now   = datetime.now(timezone.utc)
+    three = now + timedelta(days=3)
 
-    # Get the time 3 days from now in UTC
-    three_days_later = now + timedelta(days=3)
-
-    start_time = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    end_time = three_days_later.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    # Set up the API parameters
     params = {
-        "apikey": API_KEY,
-        "city": city,
-        "startDateTime": start_time,
-        "endDateTime": end_time,
-        "size": 10,
-        "sort": "date,asc" 
+        "apikey":        API_KEY,
+        "city":          city,
+        "startDateTime": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "endDateTime":   three.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "size":          10,
+        "sort":          "date,asc"
     }
 
-    response = requests.get(url, params=params)
-
-    if response.status_code == 200:
-        data = response.json()
-        if "_embedded" in data:
-            return data["_embedded"]["events"]
-        else:
-            return []
-    else:
-        print("Error:", response.status_code)
+    resp = requests.get(url, params=params)
+    if resp.status_code != 200:
+        print("Ticketmaster error:", resp.status_code)
         return []
+
+    data = resp.json()
+    if "_embedded" not in data:
+        return []
+
+    events = []
+    for e in data["_embedded"]["events"]:
+        start = e["dates"]["start"]
+        end   = e["dates"].get("end", {})          # may be missing
+
+        events.append({
+            "id":            e["id"],                           # unique event ID
+            "name":          e["name"],
+            "date":          start.get("localDate"),            # e.g. '2025‑07‑14'
+            "time":          start.get("localTime"),            # e.g. '19:30:00'
+            "description":   e.get("info") or e.get("description") or "",
+            "startDateTime": start.get("dateTime"),             # ISO‑8601 or None
+            "endDateTime":   end.get("dateTime"),               # may be None
+            "image":         _pick_image(e.get("images", []))
+        })
+
+    return events
