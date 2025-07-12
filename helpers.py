@@ -43,17 +43,18 @@ def get_events(city):
     events = []
     for e in data["_embedded"]["events"]:
         start = e["dates"]["start"]
-        end   = e["dates"].get("end", {})          # may be missing
+        end   = e["dates"].get("end", {})          
 
         events.append({
-            "id":            e["id"],                           # unique event ID
-            "name":          e["name"],
-            "date":          start.get("localDate"),            # e.g. '2025‑07‑14'
-            "time":          start.get("localTime"),            # e.g. '19:30:00'
-            "description":   e.get("info") or e.get("description") or "",
-            "startDateTime": start.get("dateTime"),             # ISO‑8601 or None
-            "endDateTime":   end.get("dateTime"),               # may be None
-            "image":         _pick_image(e.get("images", []))
+            "id": e["id"],                           
+            "name": e["name"],
+            "date": start.get("localDate"),            
+            "time": start.get("localTime"),            
+            "description": e.get("info") or e.get("description") or "",
+            "startDateTime": start.get("dateTime"),             
+            "endDateTime": end.get("dateTime"),               
+            "image": _pick_image(e.get("images", [])),
+            "url" : e.get("url", "")
         })
 
     return events

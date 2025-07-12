@@ -93,11 +93,7 @@ def index():
 @app.route("/results")
 @login_required
 def results():
-    city    = request.args.get("city")
-    keyword = request.args.get("keyword")
-    events  = []
-
-    return render_template("results.html", events=events, city=city, keyword=keyword)
+    return 
 
 if __name__ == '__main__':
     app.run(debug=True)
